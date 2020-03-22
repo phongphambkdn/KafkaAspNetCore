@@ -1,8 +1,8 @@
-﻿using Confluent.Kafka;
+﻿using System;
+using Confluent.Kafka;
 using Newtonsoft.Json;
-using System;
 
-namespace KafkaDemo.Helpers
+namespace KafkaDemo.Helpers.Kafka
 {
     public interface IKafkaProducer<T>
     {

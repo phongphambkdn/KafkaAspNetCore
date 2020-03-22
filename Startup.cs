@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using KafkaDemo.Helpers;
+using KafkaDemo.Helpers.Kafka;
 using KafkaDemo.Inputs;
 using KafkaDemo.Services;
 using Microsoft.AspNetCore.Builder;
@@ -36,6 +37,8 @@ namespace KafkaDemo
 
             services.AddSingleton<IKafkaProducer<Input>>(new KafkaProducer<Input>(appSettings.Kafka.BootstrapServers,
                 appSettings.Kafka.Topic));
+            services.AddSingleton<IKafkaProducer<KafkaRetry<Input>>>(new KafkaProducer<KafkaRetry<Input>>(appSettings.Kafka.BootstrapServers,
+                appSettings.Kafka.ExceptionTopic));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddSwaggerGen(c =>
@@ -47,7 +50,7 @@ namespace KafkaDemo
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            ConfigureKafka();
+            ConfigureKafka(app);
 
             if (env.IsDevelopment())
             {
@@ -61,11 +64,19 @@ namespace KafkaDemo
             app.UseMvc();
         }
 
-        public void ConfigureKafka()
+        public void ConfigureKafka(IApplicationBuilder app)
         {
-            IKafkaConsumer<Input> kafkaConsumer =
+            ProcessingService.Producer = app.ApplicationServices.GetService<IKafkaProducer<KafkaRetry<Input>>>();
+            RetryProcessingService.Producer = app.ApplicationServices.GetService<IKafkaProducer<KafkaRetry<Input>>>();
+
+            var kafkaConsumer =
                 new KafkaConsumer<Input>(AppSettings.Kafka.BootstrapServers, AppSettings.Kafka.Topic, AppSettings.Kafka.GroupId);
             kafkaConsumer.Receive(ProcessingService.Handler);
+
+            var exceptionConsumer =
+                new KafkaConsumer<KafkaRetry<Input>>(AppSettings.Kafka.BootstrapServers,
+                    AppSettings.Kafka.ExceptionTopic, AppSettings.Kafka.ExceptionGroupId);
+            exceptionConsumer.Receive(RetryProcessingService.Handler);
         }
     }
 }

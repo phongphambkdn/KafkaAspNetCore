@@ -1,4 +1,5 @@
 ﻿using KafkaDemo.Helpers;
+using KafkaDemo.Helpers.Kafka;
 using KafkaDemo.Inputs;
 using Microsoft.AspNetCore.Mvc;
 

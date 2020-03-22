@@ -1,10 +1,10 @@
-﻿using Confluent.Kafka;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Confluent.Kafka;
+using Newtonsoft.Json;
 
-namespace KafkaDemo.Helpers
+namespace KafkaDemo.Helpers.Kafka
 {
     public interface IKafkaConsumer<T>
     {
